@@ -1,0 +1,22 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Downloaded data
+data/*.csv
+
+# Trained models (optional — see note below)
+# models/*.keras
+
+# Environment/secrets
+.env
+
+# VS Code settings
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
