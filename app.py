@@ -55,11 +55,22 @@ run_button = st.sidebar.button("Run Analysis")
 st.title("Stock Market Analysis & Price Prediction")
 
 if run_button:
+    if not ticker.strip():
+        st.error("Please enter a stock ticker before running the analysis.")
+        st.stop()
+
     with st.spinner(f"Fetching data for {ticker}..."):
         try:
             df = fetch_stock_data(ticker, str(start_date), str(end_date))
         except ValueError as e:
             st.error(str(e))
+            st.stop()
+        except Exception as e:
+            st.error(
+                f"Something went wrong while fetching data for '{ticker}'. "
+                f"This is often caused by a temporary network issue or Yahoo Finance being unavailable. "
+                f"Please try again in a moment.\n\nDetails: {e}"
+            )
             st.stop()
 
     st.success(f"Data loaded: {len(df)} trading days for {ticker}")
@@ -163,6 +174,11 @@ if run_button:
 
     except ValueError as e:
         st.error(str(e))
+    except Exception as e:
+        st.error(
+            f"Something went wrong during model training or prediction for '{ticker}'. "
+            f"Please try a different ticker or date range.\n\nDetails: {e}"
+        )
 
 else:
     st.info("Set your ticker and date range in the sidebar, then click **Run Analysis**.")

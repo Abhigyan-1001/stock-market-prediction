@@ -16,8 +16,11 @@ def fetch_stock_data(ticker: str, start_date: str, end_date: str) -> pd.DataFram
     data = yf.download(ticker, start=start_date, end=end_date)
 
     if data.empty:
-        raise ValueError(f"No data found for ticker '{ticker}'. Check if the ticker symbol is correct.")
-
+        raise ValueError(
+            f"No data found for ticker '{ticker}'. This usually means either the ticker symbol is "
+            f"incorrect, or there's a network/connectivity issue preventing data from being downloaded. "
+            f"Please check the ticker spelling and your internet connection."
+        )
     data = data.dropna()
 
     return data
