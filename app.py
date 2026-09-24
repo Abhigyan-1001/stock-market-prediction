@@ -1,6 +1,8 @@
 import streamlit as st
 import numpy as np
+import pandas as pd
 
+from src.forecast import forecast_future
 from src.data_collection import fetch_stock_data
 from src.visualization import plot_closing_price, plot_candlestick, plot_volume, plot_moving_averages
 from src.preprocessing import chronological_split, scale_data, create_sequences
@@ -44,6 +46,8 @@ st.sidebar.title("Settings")
 ticker = st.sidebar.text_input("Stock Ticker", value="AAPL")
 start_date = st.sidebar.date_input("Start Date", value=__import__("datetime").date(2020, 1, 1))
 end_date = st.sidebar.date_input("End Date", value=__import__("datetime").date(2024, 1, 1))
+
+forecast_days = st.sidebar.slider("Forecast Horizon (days)", min_value=1, max_value=30, value=10)
 
 run_button = st.sidebar.button("Run Analysis")
 
@@ -122,9 +126,46 @@ if run_button:
         )
         st.plotly_chart(fig, use_container_width=True)
 
+        # --- Future Forecast Section ---
+        st.markdown("---")
+        st.subheader(f"Future Price Forecast ({forecast_days} Days)")
+
+        st.warning(
+            "**Important limitation:** this forecast is generated recursively — each predicted day "
+            "is fed back in as input to predict the next. Errors compound with each step, so predictions "
+            "become progressively less reliable the further into the future they go. Short-horizon forecasts "
+            "(1-5 days) are more trustworthy than long ones. **This is not financial advice.**"
+        )
+
+        recent_prices = df['Close'].values.flatten()
+        future_prices = forecast_future(model, scaler, recent_prices, n_days=forecast_days)
+
+        forecast_fig = go.Figure()
+        forecast_fig.add_trace(go.Scatter(
+            x=list(range(1, forecast_days + 1)),
+            y=future_prices,
+            mode='lines+markers',
+            name='Forecasted Price'
+        ))
+        forecast_fig.update_layout(
+            title=f"{ticker} — Next {forecast_days} Trading Days (Forecast)",
+            xaxis_title="Days Ahead",
+            yaxis_title="Predicted Price ($)",
+            template="plotly_white"
+        )
+        st.plotly_chart(forecast_fig, use_container_width=True)
+
+        forecast_df = pd.DataFrame({
+            "Day": range(1, forecast_days + 1),
+            "Forecasted Price": [f"${p:.2f}" for p in future_prices]
+        })
+        st.dataframe(forecast_df, hide_index=True)
+
     except ValueError as e:
         st.error(str(e))
 
 else:
     st.info("Set your ticker and date range in the sidebar, then click **Run Analysis**.")
+
+
 
