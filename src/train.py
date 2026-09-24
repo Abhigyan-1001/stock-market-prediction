@@ -39,6 +39,10 @@ def train_and_save_model():
     model.save("models/lstm_model.keras")
     print("\nModel saved to models/lstm_model.keras")
 
+    import joblib
+    joblib.dump(scaler, "models/scaler.pkl")
+    print("Scaler saved to models/scaler.pkl")
+
     # 8. Plot training vs validation loss
     plt.figure(figsize=(10, 5))
     plt.plot(history.history['loss'], label='Training Loss')
